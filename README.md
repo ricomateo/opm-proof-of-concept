@@ -79,7 +79,7 @@ El pipeline ejecuta 100 simulaciones variando los siguientes parámetros del mod
 Desde la raíz del repositorio:
 
 ```bash
-python scripts/generate_dataset.py --n 100 --workers 10 --seed 42 --out dataset.csv
+python3 scripts/generate_dataset.py --n 100 --workers 10 --seed 42 --out dataset.csv
 ```
 
 Flags relevantes:
