@@ -1,0 +1,31 @@
+# Transient simulation outputs
+runs/
+output_spe9/
+output/
+*.UNSMRY
+*.UNRST
+*.EGRID
+*.PRT
+*.DBG
+*.SMSPEC
+*.INIT
+*.RSSPEC
+
+# Generated datasets
+runs_log.csv
+
+
+# Heavy archives
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Editor
+.DS_Store
+.vscode/
+.idea/
