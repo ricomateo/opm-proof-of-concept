@@ -76,16 +76,16 @@ El pipeline ejecuta 100 simulaciones variando los siguientes parámetros del mod
 
 ### Ejecución
 
-Desde la raíz del repositorio:
+Desde el directorio root del repo:
 
 ```bash
-python3 scripts/generate_dataset.py --n 100 --workers 10 --seed 42 --out dataset.csv
+python3 scripts/generate_dataset.py --n 100 --workers 4 --seed 42 --out dataset.csv
 ```
 
 Flags relevantes:
 
 - `--n 100` cantidad de simulaciones.
-- `--workers 10` workers paralelos (igualar a los CPUs asignados a Docker).
+- `--workers 4` workers paralelos (igualar a los CPUs asignados a Docker).
 - `--seed 42` semilla para reproducibilidad del LHS.
 - `--skip-smoke` saltea los smoke tests.
 
