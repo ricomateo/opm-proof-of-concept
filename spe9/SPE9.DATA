@@ -351,6 +351,13 @@ RSVD
 
 SUMMARY
 
+FPR
+FOPT
+FGPT
+FWPT
+FWIR
+FWIT
+
 -- Killough's figure 7:
 FGOR
 -- Killough's figure 8:
