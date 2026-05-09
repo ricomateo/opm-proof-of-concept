@@ -170,8 +170,9 @@ NEWTRAN
 GRIDFILE 
   2 0 /
 
-MESSAGES
- 8*  600000 140000 2* /
+-- MESSAGES: item 9 value 600000 rejected by OPM (max-errors threshold); disabled
+-- MESSAGES
+--  8*  600000 140000 2* /
 
 NOECHO
 
@@ -949,8 +950,9 @@ COMPORD
 'I-F-*' INPUT /
 /
 
-PRIORITY
- 7  0.0    1.0    1.0    0.0  0.0  0.0  1.0  0.0 /
+-- PRIORITY: keyword not supported by OPM Flow; disabled
+-- PRIORITY
+--  7  0.0    1.0    1.0    0.0  0.0  0.0  1.0  0.0 /
 
 
 RPTRST
