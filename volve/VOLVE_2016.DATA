@@ -96,7 +96,7 @@ EQLDIMS
   12       100     21      1      20 /
 
 EQLOPTS
-'THPRES' 'QUIESC'    'MOBILE'   /
+'THPRES' /  -- QUIESC and MOBILE removed: not supported by OPM Flow
  
 ENDSCALE
 --                     ntendp   nsendp
