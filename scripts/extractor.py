@@ -41,6 +41,7 @@ BASELINE_PORO_VOL_WEIGHTED = float(
 
 
 SCHEMA_COLUMNS = [
+    "tiempo_dias",
     "Porosidad",
     "Permeabilidad_mD",
     "Espesor_Neto_m",
@@ -63,6 +64,7 @@ SCHEMA_COLUMNS = [
 def extract_features(summary_basename: Path | str, sim_id: int, params: dict) -> pd.DataFrame:
     sm = Summary(str(summary_basename))
 
+    tiempo_dias = sm.numpy_vector("TIME")
     fpr = sm.numpy_vector("FPR")
     fopr = sm.numpy_vector("FOPR")
     fgpr = sm.numpy_vector("FGPR")
@@ -86,6 +88,7 @@ def extract_features(summary_basename: Path | str, sim_id: int, params: dict) ->
     df = pd.DataFrame(
         {
             "sim_id": np.full(n, sim_id, dtype=int),
+            "tiempo_dias": tiempo_dias,
             "Porosidad": porosidad,
             "Permeabilidad_mD": permeabilidad,
             "Espesor_Neto_m": ESPESOR_NETO_M,
