@@ -617,7 +617,7 @@ ROCK
     329        2.0E-5    /
     329        2.0E-5    /
     329        2.0E-5    /
-    329        2.0E-5    / #13
+    329        2.0E-5    /
 
 
 -------------------------New rel perm -----------------------
@@ -745,18 +745,18 @@ SOLUTION
 -- 
 EQUIL
 -- Datum    P     woc     Pc   goc    Pc   Rsvd  Rvvd
- 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / #1 main structure - north west
- 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / #2 main structure - north
- 3060.0  337    3025.0   0.0  500    0.0   1    1     20 / #3 main structure, purged water
- 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / #4 main structure - east
- 3060.0  337    3000.0   0.0  500    0.0   1    1     20 / #5 Prospect N (-eastern part)
- 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / #6 Prospect North West (below +/-2900 mTVD)
- 3060.0  337    2700.0   0.0  500    0.0   1    1     20 / #7 Prospect N upside - assume water in base case
- 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / #8 main structure - southwest
- 3060.0  337    2700.0   0.0  500    0.0   1    1     20 / #9 Aquifer west
- 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / #10 Prospect North West (above +/-2900 mTVD)
- 3060.0  337    2910.0   0.0  500    0.0   1    1     20 / #11 Purged water F15C
- 3060.0  337    2700.0   0.0  500    0.0   1    1     20 / #12  OUTSIDE 
+ 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / main structure - north west
+ 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / main structure - north
+ 3060.0  337    3025.0   0.0  500    0.0   1    1     20 / main structure, purged water
+ 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / main structure - east
+ 3060.0  337    3000.0   0.0  500    0.0   1    1     20 / Prospect N (-eastern part)
+ 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / Prospect North West (below +/-2900 mTVD)
+ 3060.0  337    2700.0   0.0  500    0.0   1    1     20 / Prospect N upside - assume water in base case
+ 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / main structure - southwest
+ 3060.0  337    2700.0   0.0  500    0.0   1    1     20 / Aquifer west
+ 3060.0  337    3200.0   0.0  500    0.0   1    1     20 / Prospect North West (above +/-2900 mTVD)
+ 3060.0  337    2910.0   0.0  500    0.0   1    1     20 / Purged water F15C
+ 3060.0  337    2700.0   0.0  500    0.0   1    1     20 /  OUTSIDE 
 --
 --
 
