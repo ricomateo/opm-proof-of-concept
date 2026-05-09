@@ -821,6 +821,18 @@ TBLKFIW2
 --*******************************************************************************
 SUMMARY
 --*******************************************************************************
+-- Field-level keywords required by the OPM extractor pipeline. Eclipse
+-- emitted these implicitly under certain modes; OPM Flow does not, so the
+-- declarations are explicit here.
+FPR
+FOPR
+FGPR
+FWIR
+FOPT
+FGPT
+FWPT
+FWIT
+TIME
 --
 INCLUDE
 
