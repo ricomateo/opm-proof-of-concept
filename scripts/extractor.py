@@ -1,10 +1,12 @@
-"""Build the 16-column dataset from a SPE9 simulation summary.
+"""Generic SUMMARY-to-DataFrame extractor.
 
-Static columns are derived from the deck constants and the simulation parameters
-(porosity and permeability multipliers, bubble-point shift). Dynamic columns are
-read from the .UNSMRY file via resdata. PVT-derived columns (Bo, Bg, Rs) are
-computed from the field pressure trajectory using the deck's PVTO and PVDG
-tables (OPM does not export field-aggregated PVT scalars).
+Takes a `DeckConfig` and produces an 18-column row per timestep matching
+the project schema. METRIC simulations get unit-converted to FIELD on
+the fly so all reservoirs land in the same units.
+
+PVT-derived columns (Bo, Bg, Rs) are interpolated from the SPE9 PVT
+tables in `pvt_tables.py`. They are flagged as leakage in the model and
+are not used for prediction; the cross-deck approximation is acceptable.
 """
 
 from __future__ import annotations
@@ -15,29 +17,8 @@ import numpy as np
 import pandas as pd
 from resdata.summary import Summary
 
+from decks.base import DeckConfig
 from pvt_tables import bg_from_pressure, bo_from_pressure, rs_from_pressure
-
-
-# SPE9 grid constants
-LAYER_THICKNESS_FT = np.array(
-    [20, 15, 26, 15, 16, 14, 8, 8, 18, 12, 19, 18, 20, 50, 100], dtype=float
-)
-LAYER_POROSITY = np.array(
-    [0.087, 0.097, 0.111, 0.16, 0.13, 0.17, 0.17, 0.08,
-     0.14, 0.13, 0.12, 0.105, 0.12, 0.116, 0.157], dtype=float
-)
-NX, NY = 24, 25
-DX_FT = DY_FT = 300.0
-FT_TO_M = 0.3048
-
-BASELINE_MEAN_PERM_MD = 108.07
-BASELINE_PB_PSI = 3600.0
-
-ESPESOR_NETO_M = float(LAYER_THICKNESS_FT.sum() * FT_TO_M)
-AREA_M2 = float((NX * DX_FT * FT_TO_M) * (NY * DY_FT * FT_TO_M))
-BASELINE_PORO_VOL_WEIGHTED = float(
-    np.sum(LAYER_THICKNESS_FT * LAYER_POROSITY) / LAYER_THICKNESS_FT.sum()
-)
 
 
 SCHEMA_COLUMNS = [
@@ -60,8 +41,19 @@ SCHEMA_COLUMNS = [
     "Presion_Reservorio_psi",
 ]
 
+# METRIC -> FIELD conversions
+BAR_TO_PSI = 14.5037738
+SM3_TO_STB = 6.28981077
+SM3_TO_SCF = 35.3146667
+SM3_TO_MSCF = SM3_TO_SCF / 1000.0
 
-def extract_features(summary_basename: Path | str, sim_id: int, params: dict) -> pd.DataFrame:
+
+def extract_features(
+    config: DeckConfig,
+    summary_basename: Path | str,
+    sim_id: int,
+    params: dict,
+) -> pd.DataFrame:
     sm = Summary(str(summary_basename))
 
     tiempo_dias = sm.numpy_vector("TIME")
@@ -74,37 +66,59 @@ def extract_features(summary_basename: Path | str, sim_id: int, params: dict) ->
     fwpt = sm.numpy_vector("FWPT")
     fwit = sm.numpy_vector("FWIT")
 
-    n = len(fpr)
-    pb_shift = params["pb_shift"]
+    if config.unit_system == "METRIC":
+        fpr_psi = fpr * BAR_TO_PSI
+        fopr_field = fopr * SM3_TO_STB
+        fgpr_field = fgpr * SM3_TO_MSCF
+        fwir_field = fwir * SM3_TO_STB
+        fopt_field = fopt * SM3_TO_STB
+        fgpt_field = fgpt * SM3_TO_SCF
+        fwpt_field = fwpt * SM3_TO_STB
+        fwit_field = fwit * SM3_TO_STB
+        pb_psi = (config.baseline_pb + params.get("p_init_shift_bar", 0.0)) * BAR_TO_PSI
+        pb_shift_for_pvt = 0.0  # METRIC decks: PVT is approximate cross-deck
+    else:
+        fpr_psi = fpr
+        fopr_field = fopr
+        fgpr_field = fgpr  # FGPR already in MSCF/DAY (FIELD convention)
+        fwir_field = fwir
+        fopt_field = fopt
+        # SPE9 stores FGPT in MSCF; the schema column is in SCF.
+        fgpt_field = fgpt * 1000.0
+        fwpt_field = fwpt
+        fwit_field = fwit
+        pb_psi = config.baseline_pb + params.get("pb_shift", 0.0)
+        pb_shift_for_pvt = params.get("pb_shift", 0.0)
 
-    porosidad = BASELINE_PORO_VOL_WEIGHTED * params["phi_mult"]
-    permeabilidad = BASELINE_MEAN_PERM_MD * params["k_mult"]
-    pb = BASELINE_PB_PSI + pb_shift
+    rs = rs_from_pressure(fpr_psi, pb_shift_for_pvt)
+    bo = bo_from_pressure(fpr_psi, pb_shift_for_pvt)
+    bg = bg_from_pressure(fpr_psi)
 
-    rs = rs_from_pressure(fpr, pb_shift)
-    bo = bo_from_pressure(fpr, pb_shift)
-    bg = bg_from_pressure(fpr)
+    porosidad = config.static_features["baseline_porosity"] * params["phi_mult"]
+    permeabilidad = config.static_features["baseline_perm_md"] * params["k_mult"]
+    espesor = config.static_features["espesor_neto_m"]
+    area = config.static_features["area_m2"]
 
-    df = pd.DataFrame(
+    n = len(fpr_psi)
+    return pd.DataFrame(
         {
             "sim_id": np.full(n, sim_id, dtype=int),
             "tiempo_dias": tiempo_dias,
             "Porosidad": porosidad,
             "Permeabilidad_mD": permeabilidad,
-            "Espesor_Neto_m": ESPESOR_NETO_M,
-            "Area": AREA_M2,
-            "Presion_Burbuja_psi": pb,
+            "Espesor_Neto_m": espesor,
+            "Area": area,
+            "Presion_Burbuja_psi": pb_psi,
             "Bo_rb_stb": bo,
             "Bg_rb_scf": bg,
             "Rs_scf_stb": rs,
-            "Caudal_Prod_Petroleo_bbl": fopr,
-            "Caudal_Prod_Gas_Mpc": fgpr,
-            "Caudal_Iny_Agua_bbl": fwir,
-            "Prod_Acumulada_Petroleo": fopt,
-            "Prod_Acumulada_Gas": fgpt * 1000.0,
-            "Prod_Acumulada_Agua": fwpt,
-            "Iny_Acumulada_Agua": fwit,
-            "Presion_Reservorio_psi": fpr,
+            "Caudal_Prod_Petroleo_bbl": fopr_field,
+            "Caudal_Prod_Gas_Mpc": fgpr_field,
+            "Caudal_Iny_Agua_bbl": fwir_field,
+            "Prod_Acumulada_Petroleo": fopt_field,
+            "Prod_Acumulada_Gas": fgpt_field,
+            "Prod_Acumulada_Agua": fwpt_field,
+            "Iny_Acumulada_Agua": fwit_field,
+            "Presion_Reservorio_psi": fpr_psi,
         }
     )
-    return df
