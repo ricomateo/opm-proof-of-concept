@@ -23,6 +23,7 @@ El dataset generado por los scripts tiene el siguiente esquema
 |---|---|---|---|---|
 | sim_id | - | - | - | ID de simulación |
 | reservoir_id | - | - | - | ID de reservorio (spe9, norne, volve) |
+| tiempo_dias | - | - | - | Tiempo en días desde el comienzo de la producción |
 | Porosidad | φ | fracción | Estática (Petrofísica) | Fracción de espacio vacío en la matriz rocosa. |
 | Permeabilidad_mD | k | mD | Estática (Petrofísica) | Capacidad de la roca para permitir el flujo de fluidos. |
 | Espesor_Neto_m | h | m | Estática (Geometría) | Espesor productivo neto de la formación. |
