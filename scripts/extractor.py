@@ -22,6 +22,7 @@ from pvt_tables import bg_from_pressure, bo_from_pressure, rs_from_pressure
 
 
 SCHEMA_COLUMNS = [
+    "reservoir_id",
     "tiempo_dias",
     "Porosidad",
     "Permeabilidad_mD",
@@ -103,6 +104,7 @@ def extract_features(
     return pd.DataFrame(
         {
             "sim_id": np.full(n, sim_id, dtype=int),
+            "reservoir_id": config.name,
             "tiempo_dias": tiempo_dias,
             "Porosidad": porosidad,
             "Permeabilidad_mD": permeabilidad,
