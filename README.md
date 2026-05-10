@@ -1,33 +1,28 @@
 # opm-proof-of-concept
 
-Este repositorio es una prueba de concepto de [OPM](https://opm-project.org/) +
-pipeline para transformar datos de un simulador de reservorio en un dataset
-tabular. 
+Este repositorio contiene scripts para generar datasets con datos de presión y propiedades físicas de reservorios, a partir de simulaciones de [OPM Flow](https://opm-project.org/?page_id=19) sobre modelos de reservorios públicos.
 
-Contiene scripts para generar un dataset con datos físicos y de
-producción de un reservorio de petróleo, a partir de simulaciones realizadas
-con OPM Flow sobre el modelo
-[SPE9](https://github.com/OPM/opm-data/tree/master/spe9), y un notebook que
-entrena un modelo XGBoost para predecir la presión promedio del reservorio.
+## Estructura del repositorio
 
-## SPE9
-
-SPE9 es un modelo público de simulación de reservorios.
-
-Es un modelo "black-oil" con 26 pozos (1 inyector de agua y 25 productores de petróleo) sobre una grilla 3D
-de 24×25×15 celdas, con 15 capas de porosidad y permeabilidad heterogéneas.
-
-OPM Flow ejecuta SPE9 en aproximadamente 9 segundos y produce 92 reportes a lo
-largo de 900 días simulados. Cada reporte es una foto del campo en ese día con
-todas las variables agregadas a nivel reservorio.
+- `models/`: contiene los modelos de reservorios
+   - [spe9](models/spe9/): es un modelo sintético publicado pensado como benchmark para probar simuladores. Es chico (~9.000 celdas), tiene un solo inyector y 25 productores, y corre en pocos segundos. [Fuente](https://github.com/OPM/opm-tests/tree/master/spe9)
+   - [norne](models/norne/): es un modelo de un campo real del Mar del Norte (Noruega), Tiene ~113.000 celdas activas, 46 pozos, fallas geológicas, y un schedule operativo histórico de ~9 años. Es mediano en complejidad y representa un caso realista pero accesible de simulación. [Fuente](https://github.com/OPM/opm-tests/tree/master/norne)
+   - [volve](models/volve/): es otro campo real noruego, en producción entre 2008 y 2016. Tiene ~680.000 celdas y la simulación cubre 8.7 años. [Fuente](https://marketplace.databricks.com/details/5c3558ef-315c-44dd-baef-7062ac301f22/Equinor-ASA_Volve-Data-Village).
+- `datasets/`: contiene los datasets generados
+   - `dataset_norne.csv`: 30 simulaciones del modelo Norne.
+   - `dataset_spe9.csv`: 100 simulaciones del modelo spe9.
+   - `dataset_volve.csv`: 10 simulaciones del modelo Volve.
+   - `dataset_volve_norne.csv`: 30 simulaciones de Norne y 10 de Volve.
+- `scripts/`: contiene scripts para correr las simulaciones y generar los datasets. Para más detalles, ver [Descripción del pipeline](#descripción-del-pipeline).
 
 ## Dataset generado
 
-El dataset generado corresponde a 100 simulaciones del modelo SPE9. Tiene el siguiente esquema
+El dataset generado por los scripts tiene el siguiente esquema
 
 | Columna | Símbolo | Unidad | Categoría | Descripción |
 |---|---|---|---|---|
 | sim_id | - | - | - | ID de simulación |
+| reservoir_id | - | - | - | ID de reservorio (spe9, norne, volve) |
 | Porosidad | φ | fracción | Estática (Petrofísica) | Fracción de espacio vacío en la matriz rocosa. |
 | Permeabilidad_mD | k | mD | Estática (Petrofísica) | Capacidad de la roca para permitir el flujo de fluidos. |
 | Espesor_Neto_m | h | m | Estática (Geometría) | Espesor productivo neto de la formación. |
@@ -48,7 +43,7 @@ El dataset generado corresponde a 100 simulaciones del modelo SPE9. Tiene el sig
 
 ## Variabilidad entre simulaciones
 
-El pipeline ejecuta 100 simulaciones variando los siguientes parámetros del modelo SPE9, para obtener distintos resultados y otorgarle variabilidad al dataset.
+El pipeline permite ejecutar múltiples simulaciones variando los siguientes parámetros del modelo, para obtener distintos resultados y otorgarle variabilidad al dataset.
 
 | Parámetro | Descripción | Rango |
 |---|---|---|
@@ -79,19 +74,20 @@ El pipeline ejecuta 100 simulaciones variando los siguientes parámetros del mod
 Desde el directorio root del repo:
 
 ```bash
-python3 scripts/generate_dataset.py --n 100 --workers 4 --seed 42 --out dataset.csv
+python3 scripts/generate_dataset.py --model spe9  --n 10 --workers 2 --seed 42
 ```
 
 Flags relevantes:
 
-- `--n 100` cantidad de simulaciones.
-- `--workers 4` workers paralelos (igualar a los CPUs asignados a Docker).
+- `--model spe9` modelo a simular. Posibles valores: spe9, norne, volve
+- `--n 10` cantidad de simulaciones.
+- `--workers 2` workers paralelos (igualar a los CPUs asignados a Docker).
 - `--seed 42` semilla para reproducibilidad del LHS.
 - `--skip-smoke` saltea los smoke tests.
 
-El tiempo de ejecución depende de en qué máquina se ejecute el script, pero tarda alrededor de 10 minutos.
+El tiempo de ejecución depende del modelo, la cantidad de simulaciones, y de la máquina en la cual se ejecuta el script.
 
-Genera el archivo `dataset.csv`.
+Genera el archivo `dataset_{model}.csv`.
 
 
 ## Descripción del pipeline
@@ -113,7 +109,7 @@ Devuelve N diccionarios, cada uno con los seis valores para una simulación.
 ### 2. Templating del deck (`deck_template.py`)
 
 Aplica las variaciones de cada simulación. Recibe un diccionario del paso
-anterior y devuelve el texto de un `SPE9.DATA` modificado.
+anterior y devuelve el texto del archivo `.DATA` del modelo modificado.
 
 Lee el deck baseline una vez y aplica cinco substituciones, una por
 parámetro:
