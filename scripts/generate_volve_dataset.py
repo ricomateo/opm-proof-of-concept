@@ -42,8 +42,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Generate Volve dataset")
     p.add_argument("--n", type=int, default=15, help="Number of simulations")
     p.add_argument("--workers", type=int, default=4, help="Parallel docker workers")
-    p.add_argument("--out", type=str, default="dataset_volve_batch.csv")
-    p.add_argument("--log", type=str, default="runs_log_volve.csv")
+    p.add_argument("--out", type=str, default="datasets/dataset_volve_batch.csv")
+    p.add_argument("--log", type=str, default="datasets/runs_log_volve.csv")
     p.add_argument("--seed", type=int, default=42)
     return p.parse_args()
 

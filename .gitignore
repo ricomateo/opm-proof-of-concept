@@ -42,11 +42,11 @@ Thumbs.db
 .idea/
 
 # Volve unreferenced inputs and OS scratch (not used by the simulation)
-volve/VOLVE_2016_EXPAND.DATA
-volve/SCH_151215_10DAYS.SCH
-volve/SCH_190516_10DAYS.SCH
-volve/F-10_main-LH.INC
-volve/F-10_main-UHW.INC
-volve/F-14A_revp1.INC
-volve/F-1CW.INC
-volve/fort7ycXYL
+models/volve/VOLVE_2016_EXPAND.DATA
+models/volve/SCH_151215_10DAYS.SCH
+models/volve/SCH_190516_10DAYS.SCH
+models/volve/F-10_main-LH.INC
+models/volve/F-10_main-UHW.INC
+models/volve/F-14A_revp1.INC
+models/volve/F-1CW.INC
+models/volve/fort7ycXYL

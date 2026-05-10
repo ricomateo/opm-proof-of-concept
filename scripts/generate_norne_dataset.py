@@ -43,8 +43,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Generate Norne dataset")
     p.add_argument("--n", type=int, default=30, help="Number of simulations")
     p.add_argument("--workers", type=int, default=4, help="Parallel docker workers")
-    p.add_argument("--out", type=str, default="dataset_norne.csv")
-    p.add_argument("--log", type=str, default="runs_log_norne.csv")
+    p.add_argument("--out", type=str, default="datasets/dataset_norne.csv")
+    p.add_argument("--log", type=str, default="datasets/runs_log_norne.csv")
     p.add_argument("--seed", type=int, default=42)
     return p.parse_args()
 

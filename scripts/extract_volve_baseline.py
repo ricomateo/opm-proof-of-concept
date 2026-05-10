@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from pvt_tables import bg_from_pressure, bo_from_pressure, rs_from_pressure  # noqa: E402
 
-VOLVE_DIR = PROJECT_ROOT / "Volve_sim_model_PPA-Eclipse Res Model"
+VOLVE_DIR = PROJECT_ROOT / "models" / "volve"
 SUMMARY_BASE = VOLVE_DIR / "VOLVE_2016"
 
 # Volve baseline static (calibrated from VOLVE_2016.INIT).

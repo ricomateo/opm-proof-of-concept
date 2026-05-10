@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-SPE9_DIR = Path(__file__).resolve().parents[1] / "spe9"
+SPE9_DIR = Path(__file__).resolve().parents[1] / "models" / "spe9"
 BASELINE_DECK = SPE9_DIR / "SPE9.DATA"
 INCLUDE_FILES = ("PERMVALUES.DATA", "TOPSVALUES.DATA")
 

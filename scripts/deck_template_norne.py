@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-NORNE_DIR = Path(__file__).resolve().parents[1] / "norne"
+NORNE_DIR = Path(__file__).resolve().parents[1] / "models" / "norne"
 BASELINE_DECK_PATH = NORNE_DIR / "NORNE_ATW2013.DATA"
 EQUIL_INCLUDE_REL = Path("INCLUDE/PETRO/E3.prop")
 EQUIL_INCLUDE_PATH = NORNE_DIR / EQUIL_INCLUDE_REL

@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-VOLVE_DIR = Path(__file__).resolve().parents[1] / "volve"
+VOLVE_DIR = Path(__file__).resolve().parents[1] / "models" / "volve"
 BASELINE_DECK_PATH = VOLVE_DIR / "VOLVE_2016.DATA"
 
 
