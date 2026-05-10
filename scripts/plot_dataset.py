@@ -1,6 +1,6 @@
 """Diagnostic plots for the SPE9 dataset.
 
-Reads dataset.csv and runs_log.csv from the project root and writes a handful
+Reads datasets/dataset_spe9.csv and datasets/runs_log_spe9.csv and writes a handful
 of PNG figures into plots/. The point is to make the variance, the lever
 sensitivities, and the per-simulation trajectories visually obvious.
 
@@ -60,8 +60,8 @@ CORRELATION_COLS = [
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Plot the SPE9 dataset")
-    p.add_argument("--dataset", default="dataset.csv")
-    p.add_argument("--log", default="runs_log.csv")
+    p.add_argument("--dataset", default="datasets/dataset_spe9.csv")
+    p.add_argument("--log", default="datasets/runs_log_spe9.csv")
     p.add_argument("--out", default="plots")
     return p.parse_args()
 

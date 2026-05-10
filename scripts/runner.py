@@ -1,4 +1,12 @@
-"""Per-simulation worker: render deck, run OPM Flow in Docker, parse summary."""
+"""Generic per-simulation worker.
+
+Operates on a `DeckConfig`: copies the deck dir to a per-sim folder,
+overwrites the files returned by `config.render_deck(params)`, runs OPM
+Flow via Docker, parses the SUMMARY into a DataFrame, and cleans up.
+
+Replaces the model-specific runner_*.py files. Backwards-compatible
+naming convention: per-sim dirs are `runs/{config.name}_sim_{NNNN}`.
+"""
 
 from __future__ import annotations
 
@@ -7,46 +15,28 @@ import subprocess
 import time
 from pathlib import Path
 
-import pandas as pd
-
-from deck_template import (
-    BASELINE_DECK,
-    INCLUDE_FILES,
-    SPE9_DIR,
-    DeckParams,
-    load_baseline,
-    render_deck,
-)
+from decks.base import DeckConfig
 from extractor import extract_features
 
 DOCKER_IMAGE = "openporousmedia/opmreleases:latest"
-FLOW_TIMEOUT_SECONDS = 600
-DECK_NAME = "SPE9.DATA"
 
 
 def run_simulation(
+    config: DeckConfig,
     sim_id: int,
     params: dict,
     runs_dir: Path,
     keep_outputs: bool = False,
 ) -> dict:
-    sim_dir = runs_dir / f"sim_{sim_id:04d}"
-    sim_dir.mkdir(parents=True, exist_ok=True)
+    sim_dir = runs_dir / f"{config.name}_sim_{sim_id:04d}"
+    if sim_dir.exists():
+        shutil.rmtree(sim_dir)
     started = time.perf_counter()
     try:
-        deck_params = DeckParams(
-            qwinj_rate=params["qwinj_rate"],
-            qo_rate_high=params["qo_rate_high"],
-            qo_rate_low=params["qo_rate_low"],
-            k_mult=params["k_mult"],
-            phi_mult=params["phi_mult"],
-            p_init=params["p_init"],
-            pb_shift=params["pb_shift"],
-        )
-        rendered = render_deck(load_baseline(), deck_params)
-        (sim_dir / DECK_NAME).write_text(rendered)
-        for include in INCLUDE_FILES:
-            shutil.copyfile(SPE9_DIR / include, sim_dir / include)
+        shutil.copytree(config.deck_dir, sim_dir)
+
+        for rel_path, text in config.render_deck(params).items():
+            (sim_dir / rel_path).write_bytes(text.encode("latin-1"))
 
         cmd = [
             "docker", "run", "--rm",
@@ -54,58 +44,44 @@ def run_simulation(
             DOCKER_IMAGE,
             "flow",
             "--output-dir=/shared_host",
-            f"/shared_host/{DECK_NAME}",
+            f"/shared_host/{config.main_deck_filename}",
         ]
         proc = subprocess.run(
             cmd,
             check=False,
             capture_output=True,
             text=True,
-            timeout=FLOW_TIMEOUT_SECONDS,
+            timeout=config.flow_timeout_s,
         )
         if proc.returncode != 0:
             _persist_failure_log(sim_dir, proc.stdout, proc.stderr)
-            return {
-                "sim_id": sim_id,
-                "ok": False,
-                "error": f"docker exit {proc.returncode}",
-                "runtime_s": time.perf_counter() - started,
-                "df": None,
-                "params": params,
-            }
+            return _result(sim_id, False, f"docker exit {proc.returncode}",
+                           started, None, params)
 
-        summary_base = sim_dir / "SPE9"
-        df = extract_features(summary_base, sim_id, params)
-        runtime = time.perf_counter() - started
-        return {
-            "sim_id": sim_id,
-            "ok": True,
-            "error": None,
-            "runtime_s": runtime,
-            "df": df,
-            "params": params,
-        }
+        summary_base = sim_dir / config.summary_basename
+        df = extract_features(config, summary_base, sim_id, params)
+        return _result(sim_id, True, None, started, df, params)
+
     except subprocess.TimeoutExpired as exc:
-        return {
-            "sim_id": sim_id,
-            "ok": False,
-            "error": f"timeout after {exc.timeout:.0f}s",
-            "runtime_s": time.perf_counter() - started,
-            "df": None,
-            "params": params,
-        }
+        return _result(sim_id, False, f"timeout after {exc.timeout:.0f}s",
+                       started, None, params)
     except Exception as exc:
-        return {
-            "sim_id": sim_id,
-            "ok": False,
-            "error": f"{type(exc).__name__}: {exc}",
-            "runtime_s": time.perf_counter() - started,
-            "df": None,
-            "params": params,
-        }
+        return _result(sim_id, False, f"{type(exc).__name__}: {exc}",
+                       started, None, params)
     finally:
         if not keep_outputs and sim_dir.exists():
             shutil.rmtree(sim_dir, ignore_errors=True)
+
+
+def _result(sim_id, ok, error, started, df, params) -> dict:
+    return {
+        "sim_id": sim_id,
+        "ok": ok,
+        "error": error,
+        "runtime_s": time.perf_counter() - started,
+        "df": df,
+        "params": params,
+    }
 
 
 def _persist_failure_log(sim_dir: Path, stdout: str, stderr: str) -> None:

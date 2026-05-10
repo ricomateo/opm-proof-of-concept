@@ -10,6 +10,16 @@ output/
 *.SMSPEC
 *.INIT
 *.RSSPEC
+*.GRID
+*.h5
+*.LOG
+*.MSG
+*.OUT
+*.RFT
+*.ECLEND
+*.ECLRUN
+*.eclrun_dbg
+*.INSPEC
 
 # Generated datasets
 runs_log.csv
@@ -27,5 +37,16 @@ venv/
 
 # Editor
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/
+
+# Volve unreferenced inputs and OS scratch (not used by the simulation)
+models/volve/VOLVE_2016_EXPAND.DATA
+models/volve/SCH_151215_10DAYS.SCH
+models/volve/SCH_190516_10DAYS.SCH
+models/volve/F-10_main-LH.INC
+models/volve/F-10_main-UHW.INC
+models/volve/F-14A_revp1.INC
+models/volve/F-1CW.INC
+models/volve/fort7ycXYL
